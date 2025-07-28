@@ -1,0 +1,41 @@
+# Activate MOLINFO functionalities
+MOLINFO STRUCTURE=./step5_input_plumed.pdb 
+
+# MOLINFO STRUCTURE=./step5_input.pdb 
+
+# FIT_TO_TEMPLATE REFERENCE=step5_input_reference_PB.pdb
+
+#a0: FIXEDATOM AT=0,0,0
+#az: FIXEDATOM AT=0,0,1
+
+# distance between PROB-158CYS-Ca,PROA-GLN455-Ca
+#d: DISTANCE ATOMS=8983,4541 COMPONENTS
+
+# distance between PROB-158CYS-Ca,PROA-LEU295-Ca
+d1: DISTANCE ATOMS=8983,2016 COMPONENTS
+
+# distance between PROB-65SER-Ca,PROA-VAL466-Ca
+d2: DISTANCE ATOMS=7531,4715 COMPONENTS
+
+# torsion between PROA-453Ca,PROA-456Ca
+#t: TORSION ATOMS=4501,4558,a0,az
+
+# angle between 0->1,PROA-301Ca->PROA-289Ca,
+#t: ANGLE ATOMS=a0,az,2117,1927
+
+uwall: UPPER_WALLS ARG=d1.z,d2.x AT=5.0,4.0 KAPPA=2000.0,2000.0 EXP=2,2 EPS=1,1 OFFSET=0,0 
+lwall: LOWER_WALLS ARG=d1.z,d2.x AT=0,-4.0 KAPPA=2000.0,2000.0 EXP=2,2 EPS=1,1 OFFSET=0,0
+
+metad: METAD ARG=d1.z,d2.x ...
+   # Deposit a Gaussian every 500 time steps, with initial height 
+   # equal to 1.2 kJ/mol and bias factor equal to 8 
+   PACE=500 HEIGHT=1.2 BIASFACTOR=10 TEMP=310.15
+   # Gaussian width (sigma) should be chosen based on the CV fluctuations in unbiased run 
+   # try 1/2 or 1/3 of the estimated fluctuations 
+   SIGMA=0.2,0.3 CALC_RCT GRID_MIN=-8.0,-8.0 GRID_MAX=8.0,8.0 GRID_BIN=300,300 
+   # Gaussians will be written to file and also stored on grid 
+   FILE=HILLS 
+...
+
+# Print both collective variables on COLVAR file every 1 steps
+PRINT ARG=d1.z,d2.x,metad.bias FILE=COLVAR STRIDE=20
